@@ -18,6 +18,13 @@ data class PasswordEntry(
     val notes: String
 )
 
+data class PasswordEntryUpdate(
+    val resourceName: String,
+    val username: String,
+    val password: String,
+    val notes: String
+)
+
 data class UserSettings(
     val autoLogoutMinutes: Int
 )

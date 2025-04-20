@@ -23,7 +23,7 @@ interface ApiService {
     @PUT("passwords/{id}")
     suspend fun updatePassword(
         @Path("id") id: Long,
-        @Body password: PasswordEntry
+        @Body password: PasswordEntryUpdate
     ): Response<PasswordEntry>
 
     @DELETE("passwords/{id}")

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passmanager.ui.data.api.ApiService
 import com.passmanager.ui.data.model.PasswordEntry
+import com.passmanager.ui.data.model.PasswordEntryUpdate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -67,7 +68,13 @@ class PasswordViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = apiService.updatePassword(password.id!!, password)
+                val updateRequest = PasswordEntryUpdate(
+                    resourceName = password.resourceName,
+                    username = password.username,
+                    password = password.password,
+                    notes = password.notes
+                )
+                val response = apiService.updatePassword(password.id!!, updateRequest)
                 if (response.isSuccessful) {
                     loadPasswords()
                     _error.value = null
