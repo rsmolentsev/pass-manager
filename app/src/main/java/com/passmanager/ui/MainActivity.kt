@@ -56,7 +56,8 @@ class MainActivity : ComponentActivity() {
                             is AuthState.Success -> {
                                 val successState = authState as AuthState.Success
                                 if (successState.authResponse.token.isNotBlank()) {
-                                    // Login success - navigate to main screen
+                                    // Login success - load passwords and navigate to main screen
+                                    passwordViewModel.loadPasswords()
                                     navController.navigate(NavGraph.Main.passwords) {
                                         popUpTo(NavGraph.Auth.login) { inclusive = true }
                                     }
