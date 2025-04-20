@@ -2,7 +2,7 @@ package com.passmanager.ui.data.model
 
 data class LoginRequest(
     val username: String,
-    val masterPassword: String
+    val password: String
 )
 
 data class RegisterRequest(

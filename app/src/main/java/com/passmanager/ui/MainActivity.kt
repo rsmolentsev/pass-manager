@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
@@ -26,6 +27,7 @@ import com.passmanager.ui.theme.PassManagerTheme
 import com.passmanager.ui.viewmodels.AuthViewModel
 import com.passmanager.ui.viewmodels.PasswordViewModel
 import com.passmanager.ui.viewmodels.SettingsViewModel
+import com.passmanager.ui.viewmodels.AuthState
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -47,6 +49,18 @@ class MainActivity : ComponentActivity() {
                     val passwords by passwordViewModel.passwords.collectAsState()
                     val isLoading by passwordViewModel.isLoading.collectAsState()
                     val settings by settingsViewModel.settings.collectAsState()
+
+                    // Handle authentication state changes
+                    LaunchedEffect(authState) {
+                        when (authState) {
+                            is AuthState.Success -> {
+                                navController.navigate(NavGraph.Main.passwords) {
+                                    popUpTo(NavGraph.Auth.login) { inclusive = true }
+                                }
+                            }
+                            else -> {}
+                        }
+                    }
 
                     NavHost(
                         navController = navController,

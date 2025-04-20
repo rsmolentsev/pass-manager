@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.util.Log
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,14 +26,22 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
+                Log.d("AuthViewModel", "Attempting to login user: $username")
                 val response = apiService.login(LoginRequest(username, password))
+                Log.d("AuthViewModel", "Login response code: ${response.code()}")
+                Log.d("AuthViewModel", "Login response message: ${response.message()}")
                 if (response.isSuccessful) {
+                    Log.d("AuthViewModel", "Login successful")
                     _authState.value = AuthState.Success(response.body()!!)
                 } else {
-                    _authState.value = AuthState.Error("Login failed: ${response.message()}")
+                    val errorMessage = "Login failed: ${response.message()}"
+                    Log.e("AuthViewModel", errorMessage)
+                    _authState.value = AuthState.Error(errorMessage)
                 }
             } catch (e: Exception) {
-                _authState.value = AuthState.Error("Login failed: ${e.message}")
+                val errorMessage = "Login failed: ${e.message}"
+                Log.e("AuthViewModel", errorMessage, e)
+                _authState.value = AuthState.Error(errorMessage)
             }
         }
     }
@@ -41,14 +50,22 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
+                Log.d("AuthViewModel", "Attempting to register user: $username")
                 val response = apiService.register(RegisterRequest(username, password))
+                Log.d("AuthViewModel", "Register response code: ${response.code()}")
+                Log.d("AuthViewModel", "Register response message: ${response.message()}")
                 if (response.isSuccessful) {
+                    Log.d("AuthViewModel", "Registration successful")
                     _authState.value = AuthState.Success(response.body()!!)
                 } else {
-                    _authState.value = AuthState.Error("Registration failed: ${response.message()}")
+                    val errorMessage = "Registration failed: ${response.message()}"
+                    Log.e("AuthViewModel", errorMessage)
+                    _authState.value = AuthState.Error(errorMessage)
                 }
             } catch (e: Exception) {
-                _authState.value = AuthState.Error("Registration failed: ${e.message}")
+                val errorMessage = "Registration failed: ${e.message}"
+                Log.e("AuthViewModel", errorMessage, e)
+                _authState.value = AuthState.Error(errorMessage)
             }
         }
     }
