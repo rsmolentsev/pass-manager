@@ -3,6 +3,7 @@ package com.passmanager.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passmanager.ui.data.api.ApiService
+import com.passmanager.ui.data.api.TokenManager
 import com.passmanager.ui.data.model.AuthResponse
 import com.passmanager.ui.data.model.LoginRequest
 import com.passmanager.ui.data.model.RegisterRequest
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
@@ -31,8 +33,10 @@ class AuthViewModel @Inject constructor(
                 Log.d("AuthViewModel", "Login response code: ${response.code()}")
                 Log.d("AuthViewModel", "Login response message: ${response.message()}")
                 if (response.isSuccessful) {
-                    Log.d("AuthViewModel", "Login successful")
-                    _authState.value = AuthState.Success(response.body()!!)
+                    val authResponse = response.body()!!
+                    tokenManager.setToken(authResponse.token)
+                    Log.d("AuthViewModel", "Login successful, token stored")
+                    _authState.value = AuthState.Success(authResponse)
                 } else {
                     val errorMessage = "Login failed: ${response.message()}"
                     Log.e("AuthViewModel", errorMessage)
@@ -56,7 +60,7 @@ class AuthViewModel @Inject constructor(
                 Log.d("AuthViewModel", "Register response message: ${response.message()}")
                 if (response.isSuccessful) {
                     Log.d("AuthViewModel", "Registration successful")
-                    _authState.value = AuthState.Success(response.body()!!)
+                    _authState.value = AuthState.Success(AuthResponse(""))
                 } else {
                     val errorMessage = "Registration failed: ${response.message()}"
                     Log.e("AuthViewModel", errorMessage)

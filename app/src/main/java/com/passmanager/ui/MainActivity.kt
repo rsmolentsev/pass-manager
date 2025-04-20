@@ -54,8 +54,15 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(authState) {
                         when (authState) {
                             is AuthState.Success -> {
-                                navController.navigate(NavGraph.Main.passwords) {
-                                    popUpTo(NavGraph.Auth.login) { inclusive = true }
+                                val successState = authState as AuthState.Success
+                                if (successState.authResponse.token.isNotBlank()) {
+                                    // Login success - navigate to main screen
+                                    navController.navigate(NavGraph.Main.passwords) {
+                                        popUpTo(NavGraph.Auth.login) { inclusive = true }
+                                    }
+                                } else {
+                                    // Registration success - navigate back to login
+                                    navController.navigate(NavGraph.Auth.login)
                                 }
                             }
                             else -> {}
