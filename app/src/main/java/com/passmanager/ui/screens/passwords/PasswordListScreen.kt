@@ -131,7 +131,6 @@ fun PasswordListScreen(
         }
     }
 
-    // Password Details Dialog
     showPasswordDialog?.let { password ->
         AlertDialog(
             onDismissRequest = { 
@@ -190,7 +189,6 @@ fun PasswordListScreen(
         )
     }
 
-    // Delete Confirmation Dialog
     showDeleteDialog?.let { password ->
         AlertDialog(
             onDismissRequest = { showDeleteDialog = null },

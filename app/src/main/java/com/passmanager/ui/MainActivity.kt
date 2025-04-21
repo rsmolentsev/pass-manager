@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
                     val isLoading by passwordViewModel.isLoading.collectAsState()
                     val settings by settingsViewModel.settings.collectAsState()
 
-                    // Handle authentication state changes
+                    // Handles authentication state changes
                     LaunchedEffect(authState) {
                         when (authState) {
                             is AuthState.Success -> {
