@@ -14,7 +14,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -24,7 +23,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.passmanager.ui.data.model.UserSettings
-import com.passmanager.ui.navigation.NavGraph
 import com.passmanager.ui.screens.auth.LoginScreen
 import com.passmanager.ui.screens.auth.RegisterScreen
 import com.passmanager.ui.screens.passwords.PasswordFormScreen
@@ -67,12 +65,12 @@ class MainActivity : ComponentActivity() {
                                     // Login success - load passwords and settings, then navigate to main screen
                                     passwordViewModel.loadPasswords()
                                     settingsViewModel.loadSettings()
-                                    navController.navigate(NavGraph.Main.passwords) {
-                                        popUpTo(NavGraph.Auth.login) { inclusive = true }
+                                    navController.navigate("passwords") {
+                                        popUpTo("login") { inclusive = true }
                                     }
                                 } else {
                                     // Registration success - navigate back to login
-                                    navController.navigate(NavGraph.Auth.login)
+                                    navController.navigate("login")
                                 }
                             }
                             is AuthState.Error -> {
@@ -85,10 +83,10 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = NavGraph.Auth.login
+                        startDestination = "login"
                     ) {
                         // Auth Navigation
-                        composable(NavGraph.Auth.login) {
+                        composable("login") {
                             LoginScreen(
                                 navController = navController,
                                 onLogin = { username, password ->
@@ -98,7 +96,7 @@ class MainActivity : ComponentActivity() {
                                 error = (authState as? AuthState.Error)?.message
                             )
                         }
-                        composable(NavGraph.Auth.register) {
+                        composable("register") {
                             RegisterScreen(
                                 navController = navController,
                                 onRegister = { username, password ->
@@ -108,29 +106,37 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // Main Navigation
-                        composable(NavGraph.Main.passwords) {
+                        composable("passwords") {
                             PasswordListScreen(
                                 navController = navController,
                                 passwords = passwords,
                                 onDeletePassword = { id ->
                                     passwordViewModel.deletePassword(id)
                                 },
-                                isLoading = isLoading
+                                isLoading = isLoading,
+                                viewModel = passwordViewModel
                             )
                         }
-                        composable(NavGraph.Main.addPassword) {
+                        composable("add_password") {
                             PasswordFormScreen(
                                 navController = navController,
                                 password = null,
-                                onSave = { password ->
-                                    passwordViewModel.addPassword(password)
+                                onSave = { resourceName, username, password, notes, masterPassword ->
+                                    passwordViewModel.addPassword(
+                                        resourceName = resourceName,
+                                        username = username,
+                                        password = password,
+                                        notes = notes,
+                                        masterPassword = masterPassword
+                                    )
                                     navController.navigateUp()
                                 },
-                                isLoading = isLoading
+                                isLoading = isLoading,
+                                viewModel = passwordViewModel
                             )
                         }
                         composable(
-                            route = NavGraph.Main.editPassword,
+                            route = "edit_password/{id}",
                             arguments = listOf(
                                 navArgument("id") { type = NavType.LongType }
                             )
@@ -140,14 +146,21 @@ class MainActivity : ComponentActivity() {
                             PasswordFormScreen(
                                 navController = navController,
                                 password = password,
-                                onSave = { updatedPassword ->
-                                    passwordViewModel.updatePassword(updatedPassword)
+                                onSave = { resourceName, username, password, notes, masterPassword ->
+                                    passwordViewModel.addPassword(
+                                        resourceName = resourceName,
+                                        username = username,
+                                        password = password,
+                                        notes = notes,
+                                        masterPassword = masterPassword
+                                    )
                                     navController.navigateUp()
                                 },
-                                isLoading = isLoading
+                                isLoading = isLoading,
+                                viewModel = passwordViewModel
                             )
                         }
-                        composable(NavGraph.Main.settings) {
+                        composable("settings") {
                             var isDataLoaded by remember { mutableStateOf(false) }
                             
                             LaunchedEffect(Unit) {

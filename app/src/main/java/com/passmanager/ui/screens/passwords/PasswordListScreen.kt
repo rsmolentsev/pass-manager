@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
@@ -15,9 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.navigation.NavController
 import com.passmanager.ui.R
 import com.passmanager.ui.data.model.PasswordEntry
+import com.passmanager.ui.viewmodels.PasswordViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,10 +29,13 @@ fun PasswordListScreen(
     navController: NavController,
     passwords: List<PasswordEntry>,
     onDeletePassword: (Long) -> Unit,
-    isLoading: Boolean
+    isLoading: Boolean,
+    viewModel: PasswordViewModel
 ) {
     var showDeleteDialog by remember { mutableStateOf<PasswordEntry?>(null) }
     var showPasswordDialog by remember { mutableStateOf<PasswordEntry?>(null) }
+    var masterPassword by remember { mutableStateOf("") }
+    val decryptedPassword by viewModel.decryptedPassword.collectAsState()
 
     Scaffold(
         topBar = {
@@ -81,23 +88,28 @@ fun PasswordListScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { showPasswordDialog = password }
+                            .padding(horizontal = 16.dp)
+                            .clickable { showPasswordDialog = password },
+                        shape = MaterialTheme.shapes.medium
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(12.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
                                 Text(
                                     text = password.resourceName,
                                     style = MaterialTheme.typography.titleMedium
                                 )
                                 Text(
                                     text = password.username,
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             Row {
@@ -122,7 +134,10 @@ fun PasswordListScreen(
     // Password Details Dialog
     showPasswordDialog?.let { password ->
         AlertDialog(
-            onDismissRequest = { showPasswordDialog = null },
+            onDismissRequest = { 
+                showPasswordDialog = null
+                viewModel.clearDecryptedPassword()
+            },
             title = { Text(password.resourceName) },
             text = {
                 Column(
@@ -132,10 +147,30 @@ fun PasswordListScreen(
                         text = "Username: ${password.username}",
                         style = MaterialTheme.typography.bodyLarge
                     )
-                    Text(
-                        text = "Password: ${password.password}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    
+                    if (decryptedPassword != null) {
+                        Text(
+                            text = "Password: $decryptedPassword",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    } else {
+                        OutlinedTextField(
+                            value = masterPassword,
+                            onValueChange = { masterPassword = it },
+                            label = { Text("Master Password") },
+                            visualTransformation = PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        
+                        Button(
+                            onClick = { viewModel.decryptPassword(password.id!!, masterPassword) },
+                            enabled = masterPassword.isNotBlank() && !isLoading
+                        ) {
+                            Text("Decrypt Password")
+                        }
+                    }
+                    
                     if (password.notes.isNotBlank()) {
                         Text(
                             text = "Notes: ${password.notes}",
@@ -145,7 +180,10 @@ fun PasswordListScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showPasswordDialog = null }) {
+                TextButton(onClick = { 
+                    showPasswordDialog = null
+                    viewModel.clearDecryptedPassword()
+                }) {
                     Text("Close")
                 }
             }

@@ -15,18 +15,21 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.passmanager.ui.R
 import com.passmanager.ui.data.model.PasswordEntry
+import com.passmanager.ui.viewmodels.PasswordViewModel
 
 @Composable
 fun PasswordFormScreen(
     navController: NavController,
     password: PasswordEntry?,
-    onSave: (PasswordEntry) -> Unit,
-    isLoading: Boolean
+    onSave: (String, String, String, String, String) -> Unit,
+    isLoading: Boolean,
+    viewModel: PasswordViewModel
 ) {
     var resourceName by remember { mutableStateOf(password?.resourceName ?: "") }
     var username by remember { mutableStateOf(password?.username ?: "") }
     var passwordText by remember { mutableStateOf(password?.password ?: "") }
     var notes by remember { mutableStateOf(password?.notes ?: "") }
+    var masterPassword by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -90,6 +93,19 @@ fun PasswordFormScreen(
                 label = { Text(stringResource(R.string.notes)) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = masterPassword,
+                onValueChange = { masterPassword = it },
+                label = { Text("Master Password") },
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done
                 ),
                 modifier = Modifier.fillMaxWidth()
@@ -99,20 +115,13 @@ fun PasswordFormScreen(
 
             Button(
                 onClick = {
-                    onSave(
-                        PasswordEntry(
-                            id = password?.id,
-                            resourceName = resourceName,
-                            username = username,
-                            password = passwordText,
-                            notes = notes
-                        )
-                    )
+                    onSave(resourceName, username, passwordText, notes, masterPassword)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                enabled = !isLoading && resourceName.isNotBlank() && username.isNotBlank() && passwordText.isNotBlank()
+                enabled = !isLoading && resourceName.isNotBlank() && username.isNotBlank() && 
+                         passwordText.isNotBlank() && masterPassword.isNotBlank()
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(

@@ -3,8 +3,7 @@ package com.passmanager.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passmanager.ui.data.api.ApiService
-import com.passmanager.ui.data.model.PasswordEntry
-import com.passmanager.ui.data.model.PasswordEntryUpdate
+import com.passmanager.ui.data.model.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +25,9 @@ class PasswordViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _decryptedPassword = MutableStateFlow<String?>(null)
+    val decryptedPassword: StateFlow<String?> = _decryptedPassword.asStateFlow()
+
     fun loadPasswords() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -45,11 +47,18 @@ class PasswordViewModel @Inject constructor(
         }
     }
 
-    fun addPassword(password: PasswordEntry) {
+    fun addPassword(resourceName: String, username: String, password: String, notes: String, masterPassword: String) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = apiService.addPassword(password)
+                val passwordEntry = PasswordEntryCreate(
+                    resourceName = resourceName,
+                    username = username,
+                    password = password,
+                    notes = notes,
+                    masterPassword = masterPassword
+                )
+                val response = apiService.addPassword(passwordEntry)
                 if (response.isSuccessful) {
                     loadPasswords()
                     _error.value = null
@@ -106,5 +115,29 @@ class PasswordViewModel @Inject constructor(
                 _isLoading.value = false
             }
         }
+    }
+
+    fun decryptPassword(id: Long, masterPassword: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val request = DecryptPasswordRequest(masterPassword = masterPassword)
+                val response = apiService.decryptPassword(id, request)
+                if (response.isSuccessful) {
+                    _decryptedPassword.value = response.body()?.password
+                    _error.value = null
+                } else {
+                    _error.value = "Failed to decrypt password: ${response.message()}"
+                }
+            } catch (e: Exception) {
+                _error.value = "Failed to decrypt password: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun clearDecryptedPassword() {
+        _decryptedPassword.value = null
     }
 } 

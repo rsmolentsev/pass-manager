@@ -18,11 +18,27 @@ data class PasswordEntry(
     val notes: String
 )
 
+data class PasswordEntryCreate(
+    val resourceName: String,
+    val username: String,
+    val password: String,
+    val notes: String,
+    val masterPassword: String
+)
+
 data class PasswordEntryUpdate(
     val resourceName: String,
     val username: String,
     val password: String,
     val notes: String
+)
+
+data class DecryptPasswordRequest(
+    val masterPassword: String
+)
+
+data class DecryptPasswordResponse(
+    val password: String
 )
 
 data class UserSettings(

@@ -18,7 +18,7 @@ interface ApiService {
     suspend fun getPassword(@Path("id") id: Long): Response<PasswordEntry>
 
     @POST("passwords")
-    suspend fun addPassword(@Body password: PasswordEntry): Response<PasswordEntry>
+    suspend fun addPassword(@Body password: PasswordEntryCreate): Response<PasswordEntry>
 
     @PUT("passwords/{id}")
     suspend fun updatePassword(
@@ -28,6 +28,12 @@ interface ApiService {
 
     @DELETE("passwords/{id}")
     suspend fun deletePassword(@Path("id") id: Long): Response<Unit>
+
+    @POST("passwords/{id}/decrypt")
+    suspend fun decryptPassword(
+        @Path("id") id: Long,
+        @Body request: DecryptPasswordRequest
+    ): Response<DecryptPasswordResponse>
 
     @GET("settings")
     suspend fun getSettings(): Response<UserSettings>
