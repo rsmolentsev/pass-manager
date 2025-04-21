@@ -3,12 +3,19 @@ package com.passmanager.ui
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
@@ -29,6 +36,7 @@ import com.passmanager.ui.viewmodels.PasswordViewModel
 import com.passmanager.ui.viewmodels.SettingsViewModel
 import com.passmanager.ui.viewmodels.AuthState
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -56,8 +64,9 @@ class MainActivity : ComponentActivity() {
                             is AuthState.Success -> {
                                 val successState = authState as AuthState.Success
                                 if (successState.authResponse.token.isNotBlank()) {
-                                    // Login success - load passwords and navigate to main screen
+                                    // Login success - load passwords and settings, then navigate to main screen
                                     passwordViewModel.loadPasswords()
+                                    settingsViewModel.loadSettings()
                                     navController.navigate(NavGraph.Main.passwords) {
                                         popUpTo(NavGraph.Auth.login) { inclusive = true }
                                     }
@@ -133,17 +142,34 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable(NavGraph.Main.settings) {
-                            SettingsScreen(
-                                navController = navController,
-                                settings = settings ?: UserSettings(autoLogoutMinutes = 60),
-                                onUpdateSettings = { updatedSettings ->
-                                    settingsViewModel.updateSettings(updatedSettings)
-                                },
-                                onChangeMasterPassword = { oldPassword, newPassword ->
-                                    settingsViewModel.changeMasterPassword(oldPassword, newPassword)
-                                },
-                                isLoading = settingsViewModel.isLoading.collectAsState().value
-                            )
+                            var isDataLoaded by remember { mutableStateOf(false) }
+                            
+                            LaunchedEffect(Unit) {
+                                settingsViewModel.loadSettings()
+                                delay(100)
+                                isDataLoaded = true
+                            }
+                            
+                            if (isDataLoaded) {
+                                SettingsScreen(
+                                    navController = navController,
+                                    settings = settings ?: UserSettings(autoLogoutMinutes = 60),
+                                    onUpdateSettings = { updatedSettings ->
+                                        settingsViewModel.updateSettings(updatedSettings)
+                                    },
+                                    onChangeMasterPassword = { oldPassword, newPassword ->
+                                        settingsViewModel.changeMasterPassword(oldPassword, newPassword)
+                                    },
+                                    isLoading = settingsViewModel.isLoading.collectAsState().value
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
                         }
                     }
                 }

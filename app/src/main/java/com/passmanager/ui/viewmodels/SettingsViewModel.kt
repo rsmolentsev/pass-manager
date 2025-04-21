@@ -26,10 +26,6 @@ class SettingsViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    init {
-        loadSettings()
-    }
-
     fun loadSettings() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -55,7 +51,7 @@ class SettingsViewModel @Inject constructor(
             try {
                 val response = apiService.updateSettings(settings)
                 if (response.isSuccessful) {
-                    _settings.value = response.body()
+                    _settings.value = settings
                     _error.value = null
                 } else {
                     _error.value = "Failed to update settings: ${response.message()}"
