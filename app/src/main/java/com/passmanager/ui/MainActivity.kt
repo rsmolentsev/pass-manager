@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             is AuthState.Error -> {
-                                
+                                delay(3000)
                                 authViewModel.resetState()
                             }
                             else -> {}
