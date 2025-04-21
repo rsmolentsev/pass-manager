@@ -75,6 +75,10 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate(NavGraph.Auth.login)
                                 }
                             }
+                            is AuthState.Error -> {
+                                
+                                authViewModel.resetState()
+                            }
                             else -> {}
                         }
                     }
@@ -89,7 +93,9 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 onLogin = { username, password ->
                                     authViewModel.login(username, password)
-                                }
+                                },
+                                isLoading = authState is AuthState.Loading,
+                                error = (authState as? AuthState.Error)?.message
                             )
                         }
                         composable(NavGraph.Auth.register) {

@@ -17,11 +17,13 @@ import com.passmanager.ui.R
 @Composable
 fun LoginScreen(
     navController: NavController,
-    onLogin: (String, String) -> Unit
+    onLogin: (String, String) -> Unit,
+    isLoading: Boolean,
+    error: String?
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
+    var localError by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -38,7 +40,10 @@ fun LoginScreen(
 
         OutlinedTextField(
             value = username,
-            onValueChange = { username = it },
+            onValueChange = { 
+                username = it
+                localError = null
+            },
             label = { Text(stringResource(R.string.username)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
@@ -52,7 +57,10 @@ fun LoginScreen(
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { 
+                password = it
+                localError = null
+            },
             label = { Text(stringResource(R.string.master_password)) },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
@@ -65,15 +73,26 @@ fun LoginScreen(
                 .padding(bottom = 24.dp)
         )
 
+        (error ?: localError)?.let {
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
+
         Button(
             onClick = {
-                isLoading = true
+                if (username.isBlank() || password.isBlank()) {
+                    localError = "Please fill in all fields"
+                    return@Button
+                }
                 onLogin(username, password)
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            enabled = !isLoading && username.isNotBlank() && password.isNotBlank()
+            enabled = !isLoading
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
