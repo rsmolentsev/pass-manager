@@ -18,7 +18,7 @@ interface ApiService {
     suspend fun getPassword(@Path("id") id: Long): Response<PasswordEntry>
 
     @POST("passwords")
-    suspend fun addPassword(@Body password: PasswordEntryCreate): Response<PasswordEntry>
+    suspend fun addPassword(@Body password: PasswordEntryUpdate): Response<PasswordEntry>
 
     @PUT("passwords/{id}")
     suspend fun updatePassword(

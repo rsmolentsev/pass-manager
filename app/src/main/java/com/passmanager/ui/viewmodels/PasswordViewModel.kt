@@ -51,7 +51,7 @@ class PasswordViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val passwordEntry = PasswordEntryCreate(
+                val passwordEntry = PasswordEntryUpdate(
                     resourceName = resourceName,
                     username = username,
                     password = password,
@@ -81,7 +81,8 @@ class PasswordViewModel @Inject constructor(
                     resourceName = password.resourceName,
                     username = password.username,
                     password = password.password,
-                    notes = password.notes
+                    notes = password.notes,
+                    masterPassword = password.masterPassword
                 )
                 val response = apiService.updatePassword(password.id!!, updateRequest)
                 if (response.isSuccessful) {

@@ -22,7 +22,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.passmanager.ui.data.model.PasswordEntry
 import com.passmanager.ui.data.model.UserSettings
+import com.passmanager.ui.data.model.PasswordEntryUpdate
 import com.passmanager.ui.screens.auth.LoginScreen
 import com.passmanager.ui.screens.auth.RegisterScreen
 import com.passmanager.ui.screens.passwords.PasswordFormScreen
@@ -147,13 +149,18 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 password = password,
                                 onSave = { resourceName, username, password, notes, masterPassword ->
-                                    passwordViewModel.addPassword(
-                                        resourceName = resourceName,
-                                        username = username,
-                                        password = password,
-                                        notes = notes,
-                                        masterPassword = masterPassword
-                                    )
+                                    if (id != null) {
+                                        passwordViewModel.updatePassword(
+                                            PasswordEntry(
+                                                id = id,
+                                                resourceName = resourceName,
+                                                username = username,
+                                                password = password,
+                                                notes = notes,
+                                                masterPassword = masterPassword
+                                            )
+                                        )
+                                    }
                                     navController.navigateUp()
                                 },
                                 isLoading = isLoading,
